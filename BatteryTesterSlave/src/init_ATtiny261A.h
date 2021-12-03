@@ -1,0 +1,166 @@
+/*************************/
+/*  Header File          */
+/*  Project MBT          */
+/*                       */
+/*  Slave Initiation     */
+/*************************/
+
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include <stdio.h>
+
+//Bit defines
+//SPI
+#define SDI			PINB0
+#define SDO			PINB1
+#define USCK		PINB2
+
+#define CS			PINB6		//PINA[0:7] PINB[0:7]
+
+//Power
+#define CHARGE		PINA0
+#define DISCHARGE	PINA5
+
+//ADC
+#define TEMP		PINA6		//ADC5 MUX5:0 000101
+#define BATT		PINA4		//ADC6 MUX3:0 000011
+
+//Status
+#define STAT_RED	PINA1
+#define STAT_GREEN	PINA2
+
+//Clock Prescaler
+#define CLK_PRESCALER_VALUE 1  //Must be 1, 2, 4, 8, 16, 32, 64, 128 or 256
+
+
+
+/* MCU CLOCK PRESCALER */
+
+//Prescaler value converted to bit settings.
+
+#if CLK_PRESCALER_VALUE == 1
+#define CLK_PS_SETTING (1<<CLKPCE)
+
+#elif CLK_PRESCALER_VALUE == 2
+#define CLK_PS_SETTING (1<<CLKPCE)|(1<<CLKPS0)
+
+#elif CLK_PRESCALER_VALUE == 4
+#define CLK_PS_SETTING (1<<CLKPCE)|(1<<CLKPS1)
+
+#elif CLK_PRESCALER_VALUE == 8
+#define CLK_PS_SETTING (1<<CLKPCE)|(1<<CLKPS1)|(1<<CLKPS0)
+
+#elif CLK_PRESCALER_VALUE == 16
+#define CLK_PS_SETTING (1<<CLKPCE)|(1<<CLKPS2)
+
+#elif CLK_PRESCALER_VALUE == 32
+#define CLK_PS_SETTING (1<<CLKPCE)|(1<<CLKPS2)|(1<<CLKPS0)
+
+#elif CLK_PRESCALER_VALUE == 64
+#define CLK_PS_SETTING (1<<CLKPCE)|(1<<CLKPS2)|(1<<CLKPS1)
+
+#elif CLK_PRESCALER_VALUE == 128
+#define CLK_PS_SETTING (1<<CLKPCE)|(1<<CLKPS2)|(1<<CLKPS1)|(1<<CLKPS0)
+
+#elif CLK_PRESCALER_VALUE == 256
+#define CLK_PS_SETTING (1<<CLKPCE)|(1<<CLKPS3)
+
+#else
+#error Invalid prescaler setting.
+
+#endif
+
+/*
+void mcu_set_clock()		//set clock to 10MHz? supply voltage?
+{
+	//internal clock must not be set, its selected by default
+	CLKPR|=(1<<CLKPCE); //Clock prescaler enabled
+	CLKPR&=~(1<<CLKPS3)|(1<<CLKPS2)|(1<<CLKPS1)|(1<<CLKPS0); //no prescaler (all 0), but still avoids unintentional clock changes
+}
+*/
+
+void mcu_set_clock()
+{
+	CLKPR = CLK_PRESCALER_VALUE;
+}
+
+void PCINT_setup()
+{
+	PCMSK1 |= (1<<PCINT14);
+	GIMSK |= PCIE1;                     // General Interrupt Mask Register / PCIE bit activates external interrupts
+}
+
+void PWM_setup()	//Charge/Discharge
+{
+	//Timer 1: 10kHz Software-PWM
+	//2 Channels can be controlled by changing OCR1x and used via the OVF Interrupt
+	TCCR1A&=~(1<<COM1A1)|(1<<COM1A0)|(1<<COM1B1)|(1<<COM1B0);
+	TCCR1A|=(1<<PWM1A)|(PWM1B);
+	
+	TCCR1B|=(1<<CS13)|(1<<CS11)|(1<<CS10);
+	TCCR1B&=~(1<<CS12);
+	
+	TCCR1C&=~(1<<COM1D1)|(1<<COM1D0);
+	
+	TCCR1D&=~(1<<WGM11);
+	TCCR1D|=(1<<WGM10);
+	
+	TIMSK|=(1<<OCIE1A)|(1<<OCIE1B);
+	
+	OCR1C=20;
+	
+	OCR1A=0;
+	OCR1B=0;
+}
+
+/*void counter_setup()
+{
+	//100Hz counter
+	TCCR0A|=(1<<0);	//CTC0
+	TCCR0A&=~(1<<ICEN0)|(1<<TCW0);
+	TCCR0B|=(1<<CS02)|(1<<CS00);
+	TCCR0B&=~(1<<CS01);
+	
+	TIMSK|=(1<<OCIE0A);
+	OCR0A=200;
+}*/
+
+void SPI_setup()
+{
+	//port settings for slave
+	DDRB|=(1<<SDO);     //Setting direction of PB1
+	DDRB&=~(1<<SDI)|(1<<CS)|(1<<USCK);
+	PORTB|=(1<<SDI)|(1<<CS);  // Pull-up
+	
+	//Choosing SPI aka three wire mode p.133
+	USICR&=~(1<<USIWM1);
+	USICR|=(1<<USIWM0);
+	
+	//Select clock source
+	USICR|=(1<<USICS1);					//External clock source
+	USICR&=~(1<<USICS0)|(1<<USICLK);	//positive edge
+}
+
+void ADC_setup()
+{
+	//ADC5 : Temperature Sensor NTC 
+	ADCSRA|=(1<<ADEN)|(1<<ADPS1)|(1<<ADPS0)|(1<<ADIE);	//ADC enabled, Clock Prescaler of 8, ADC Interrupt enabled
+	
+	ADMUX|=(1<<REFS1);									//Internal Reference Voltage 2.56V, ADC5 MUX5:0 000101
+	ADCSRB|=(1<<REFS2);									//Internal Reference Voltage 2.56V, Timer0_OVF_vect triggers the Conversion
+
+	//Result is right adjusted
+	
+	//ADATE is not enabled, which means we drive the ADC in Single Conversion Mode.
+	//By setting ADSC (ADC Start Conversion) to a logic 1, the conversion is getting started.
+	//Once the conversion is done, ADSC is cleared and the ADIF flag will be set.
+}
+
+void init_attiny261a()
+{
+	mcu_set_clock();
+	PCINT_setup();
+	PWM_setup();
+	ADC_setup();
+	SPI_setup();
+}
