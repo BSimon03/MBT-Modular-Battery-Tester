@@ -5,13 +5,23 @@
 /*  Important Strings    */
 /*************************/
 
+//Important Predefines
+#define MIN_PRE_CHARGE	2
+#define MAX_VOLTAGE		4.2
+#define END_OF_CHARGE	3.5
+#define MIN_CAPACITY	1600
+#define MAX_RESISTANCE	50
+
+//Tolerance
+#define MAX_CAP_DIFF	10
+
 //Strings sent by the master -> Requests
 const uint8_t empty_string= 0x00;
 const uint8_t request_info= 0x2A; //0b00101010
 const uint8_t request_secs= 0xE4; //0b11100100
 
 /*
-Process:
+Progress:
 	00% 0) Idle
 	00% 1) balance the cell to a start level: 3V
 	10% 2) charge until 4V with 1A

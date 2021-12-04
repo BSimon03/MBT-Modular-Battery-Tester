@@ -17,7 +17,7 @@
 volatile uint8_t storedDATA = 0;
 
 //Data to be sent
-volatile uint8_t information_string;		//Bits[7:6] for indication and information, Bits[5:0] resistance of the battery cell
+volatile uint8_t information_string;	//Bits[7:6] for indication and information, Bits[5:0] resistance of the battery cell
 volatile uint8_t value_string;			//Bits[7:0] capacitance of the battery cell
 
 //Interrupt
