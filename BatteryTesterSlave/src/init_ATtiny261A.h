@@ -113,18 +113,6 @@ void PWM_setup()	//Charge/Discharge
 	OCR1B=0;
 }
 
-/*void counter_setup()
-{
-	//100Hz counter
-	TCCR0A|=(1<<0);	//CTC0
-	TCCR0A&=~(1<<ICEN0)|(1<<TCW0);
-	TCCR0B|=(1<<CS02)|(1<<CS00);
-	TCCR0B&=~(1<<CS01);
-	
-	TIMSK|=(1<<OCIE0A);
-	OCR0A=200;
-}*/
-
 void SPI_setup()
 {
 	//port settings for slave
@@ -144,16 +132,18 @@ void SPI_setup()
 void ADC_setup()
 {
 	//ADC5 : Temperature Sensor NTC 
-	ADCSRA|=(1<<ADEN)|(1<<ADPS1)|(1<<ADPS0)|(1<<ADIE);	//ADC enabled, Clock Prescaler of 8, ADC Interrupt enabled
+	ADCSRA|=(1<<ADEN);					//ADC enabled, 
+	ADCSRA|=(1<<ADPS2)|(1<<ADIE);		//Clock Prescaler of 16, ADC Interrupt enabled
 	
-	ADMUX|=(1<<REFS1);									//Internal Reference Voltage 2.56V, ADC5 MUX5:0 000101
-	ADCSRB|=(1<<REFS2);									//Internal Reference Voltage 2.56V, Timer0_OVF_vect triggers the Conversion
+	ADMUX|=(1<<REFS1);									//Internal Reference Voltage 2.56V
+	ADCSRB|=(1<<REFS2);									//Internal Reference Voltage 2.56V
 
 	//Result is right adjusted
 	
 	//ADATE is not enabled, which means we drive the ADC in Single Conversion Mode.
 	//By setting ADSC (ADC Start Conversion) to a logic 1, the conversion is getting started.
 	//Once the conversion is done, ADSC is cleared and the ADIF flag will be set.
+	//When its completed the channel can safely be changed. The next conversion takes 25 clock cycles.
 }
 
 void init_attiny261a()

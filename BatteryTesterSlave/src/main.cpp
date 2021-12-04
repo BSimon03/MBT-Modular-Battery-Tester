@@ -78,47 +78,61 @@ int main(void)
 		switch(status)
 		{
 			case 0:		//Idle, waiting
-			
+				information_string |= idle;
+
 			break;
 			case 1:		//balance the cell to a start level: 3V
-			
+				information_string |= processing;
+
 			break;
 			case 2:		//charging until 4V with 1A
-			
+				information_string |= processing;
+
 			break;
 			case 3:		//charging until 4,2V with 500mA
-			
+				information_string |= processing;
+
 			break;
 			case 4:		//resistance measurement with 1 - 2A
-			
+				information_string |= processing;
+
 			break;
 			case 5:		//discharging until 3V with 1A
-			
+				information_string |= processing;
+
 			break;
 			case 6:		//charging until 3.7V
-			
+				information_string |= processing;
+
 			break;
 			case 7:		//charging
-			
+				information_string |= processing;
+
 			break;
 			case 8:		//Discharging
-			information_string |=ok_inprogress;
+				information_string |= processing;
+
 			break;
 			case 9:		//Error, temperature too high
 				information_string |= error_high_temp;
+
 			break;
 			case 10:	//Error, low voltage
 				information_string |= error_low_volt;
+
 			break;
 			case 11:	//Error, not suitable (res too high, cap too low)
 				information_string |= error_not_suit;
+
 			break;
 			case 12:	//Error, timeout 10h
 				information_string |= error_timeout;
+
 			break;
 			case 13:	//Done with the measurement
-				information_string |= ok_done;
+				information_string |= done;
 				value_string = 0xFF;
+
 			break;
 		}
 	}
@@ -248,4 +262,3 @@ ISR(PCINT_vect)
 	adc_value_raw=0;
 	adc_counter++;
  }
-	 
