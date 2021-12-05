@@ -53,14 +53,13 @@ uint16_t charge_capacity = 0;
 uint16_t discharge_capacity = 0;
 uint8_t discharge_resistance = 0;
 
-uint16_t adc_value_raw = 0;
-float adc_values[ADC_SAMPLES] = {0};
+uint16_t adc_values[ADC_SAMPLES] = {0};
 
-float adc_voltage = 0;
+uint16_t adc_value = 0;
 uint8_t battery_temperature = 0;
 float battery_voltage = 0;
 
-float sort = 0; //sort algorithm
+uint16_t sort = 0; //sort algorithm
 
 //Outcome of Measurements
 uint8_t capacity = 0;
@@ -99,32 +98,31 @@ int main(void)
 					}
 				}
 /***************Adding all measured values to variable, except the outer ones.*********************************************/
-				adc_voltage = 0; //Resetting variable
+				adc_value = 0; //Resetting variable
 				for (adc_counter = 1; adc_counter <= (ADC_SAMPLES - 2); adc_counter++) 
-					adc_voltage += adc_values[adc_counter];
-				adc_voltage /= (ADC_SAMPLES - 2);
+					adc_value += adc_values[adc_counter];
+				adc_value /= (ADC_SAMPLES - 2);
 				adc_counter = 0;
 
 				if (ADCstat)		//Temperature
 				{
-					battery_temperature=adc_voltage/TEMP_CONSTANT;
+					battery_temperature=(float)adc_value/TEMP_CONSTANT;
 					ADMUX &= ~(1 << MUX2); //Clearing all important bits of the ADMUX register
 					ADMUX |= (1 << MUX1);  //Attaching Channel 6 to the ADC... Battery
 					ADCstat = 0;
 				}
 				else if (!ADCstat)	//Battery
 				{
-					battery_voltage=adc_voltage;
+					battery_voltage=(float)adc_value/400;	//divided by 1024 aka 10-bit, multiplied by 2,56 aka internal reference voltage
 					ADMUX &= ~(1 << MUX1); //Clearing all important bits of the ADMUX register
 					ADMUX |= (1 << MUX2);  //Attaching Channel 5 to the ADC... Temperature
 					ADCstat = 1;
 				}
 			}
 			
-			adc_value_raw = 0;
-			adc_value_raw |= ADCL;
-			adc_value_raw |= ((ADCH & 0b00000011) << 8);
-			adc_values[adc_counter] = (float)adc_value_raw / 400; //divided by 1024 aka 10-bit, multiplied by 2,56 aka internal reference voltage
+			adc_values[adc_counter] = 0;
+			adc_values[adc_counter] |= ADCL;
+			adc_values[adc_counter] |= ((ADCH & 0b00000011) << 8);
 			
 			adc_counter++;
 		}
