@@ -14,11 +14,11 @@
 #define ADC_SAMPLES 6
 
 //Data received
-volatile uint8_t storedDATA = 0;
+uint8_t storedDATA = 0;
 
 //Data to be sent
-volatile uint8_t information_string; //Bits[7:6] for indication and information, Bits[5:0] resistance of the battery cell
-volatile uint8_t value_string;		 //Bits[7:0] capacitance of the battery cell
+uint8_t information_string; //Bits[7:6] for indication and information, Bits[5:0] resistance of the battery cell
+uint8_t value_string;		//Bits[7:0] capacitance of the battery cell
 
 //Interrupt
 uint8_t timer_counter = 0;
@@ -55,10 +55,12 @@ uint8_t discharge_resistance = 0;
 
 uint16_t adc_value_raw = 0;
 float adc_values[ADC_SAMPLES] = {0};
+
+float adc_voltage = 0;
 uint8_t battery_temperature = 0;
 float battery_voltage = 0;
 
-float bubble = 0; //Bubblesort algorithm
+float sort = 0; //sort algorithm
 
 //Outcome of Measurements
 uint8_t capacity = 0;
@@ -77,57 +79,57 @@ int main(void)
 			if (adc_counter >= ADC_SAMPLES)
 			{
 				//Sorting and averaging algorithm
-				/*for (adc_counter = 0; adc_counter <= (ADC_SAMPLES - 2); adc_counter++)
+				for (adc_counter = 0; adc_counter <= (ADC_SAMPLES - 2); adc_counter++)
 				{
 					if (adc_values[adc_counter] < adc_values[adc_counter - 1])
 					{
-						bubble = adc_values[adc_counter - 1];
+						sort = adc_values[adc_counter - 1];
 						adc_values[adc_counter - 1] = adc_values[adc_counter];
-						adc_values[adc_counter] = bubble;
+						adc_values[adc_counter] = sort;
 					}
-				}*/
+				}
 
-				/*for (adc_counter = 0; adc_counter <= (ADC_SAMPLES - 2); adc_counter++)
+				for (adc_counter = 0; adc_counter <= (ADC_SAMPLES - 2); adc_counter++)
 				{
 					if (adc_values[adc_counter] < adc_values[adc_counter - 1])
 					{
-						bubble = adc_values[adc_counter + 1];
+						sort = adc_values[adc_counter + 1];
 						adc_values[adc_counter + 1] = adc_values[adc_counter];
-						adc_values[adc_counter] = bubble;
+						adc_values[adc_counter] = sort;
 					}
-				}*/
-
-				if (!ADCstat) //Measured Temperature
-				{
-					battery_temperature = 0;											   //Resetting battery temperature
-					for (adc_counter = 1; adc_counter <= (ADC_SAMPLES - 2); adc_counter++) //Adding all measured values to battery_voltage, except the outer ones.
-						battery_temperature += adc_values[adc_counter];
-					battery_temperature /= (ADC_SAMPLES - 2);
-					adc_counter = 0;
-					ADCstat = 1;
-					ADMUX &= ~(1 << MUX0) | (1 << MUX1) | (1 << MUX2); //Clearing all important bits of the ADMUX register
-					ADMUX |= (1 << MUX0) | (1 << MUX1);				   //Attaching Channel 6 to the ADC
 				}
-				else
-				{																		   //Measured Battery Voltage
-					battery_voltage = 0;												   //Resetting battery voltage
-					for (adc_counter = 1; adc_counter <= (ADC_SAMPLES - 2); adc_counter++) //Adding all measured values to battery_voltage, except the outer ones.
-						battery_voltage += adc_values[adc_counter];
-					battery_voltage /= (ADC_SAMPLES - 2);
-					adc_counter = 0;
+/***************Adding all measured values to variable, except the outer ones.*********************************************/
+				adc_voltage = 0; //Resetting variable
+				for (adc_counter = 1; adc_counter <= (ADC_SAMPLES - 2); adc_counter++) 
+					adc_voltage += adc_values[adc_counter];
+				adc_voltage /= (ADC_SAMPLES - 2);
+				adc_counter = 0;
+
+				if (ADCstat)		//Temperature
+				{
+					battery_temperature=adc_voltage/TEMP_CONSTANT;
+					ADMUX &= ~(1 << MUX2); //Clearing all important bits of the ADMUX register
+					ADMUX |= (1 << MUX1);  //Attaching Channel 6 to the ADC... Battery
 					ADCstat = 0;
-					ADMUX &= ~(1 << MUX0) | (1 << MUX1) | (1 << MUX2); //Clearing all important bits of the ADMUX register
-					ADMUX |= (1 << MUX0) | (1 << MUX2);				   //Attaching Channel 5 to the ADC
+				}
+				else if (!ADCstat)	//Battery
+				{
+					battery_voltage=adc_voltage;
+					ADMUX &= ~(1 << MUX1); //Clearing all important bits of the ADMUX register
+					ADMUX |= (1 << MUX2);  //Attaching Channel 5 to the ADC... Temperature
+					ADCstat = 1;
 				}
 			}
+			
+			adc_value_raw = 0;
 			adc_value_raw |= ADCL;
 			adc_value_raw |= ((ADCH & 0b00000011) << 8);
-			adc_values[adc_counter] = (float)adc_value_raw / 400; //divided by 1023 aka 10-bit, multiplied by 2,56 aka internal reference voltage
-			adc_value_raw = 0;
+			adc_values[adc_counter] = (float)adc_value_raw / 400; //divided by 1024 aka 10-bit, multiplied by 2,56 aka internal reference voltage
+			
 			adc_counter++;
 		}
 		//Communication
-		information_string = 0;
+		information_string &= 0xFF;
 		switch (status)
 		{
 		case 0: //Idle, waiting
