@@ -21,17 +21,17 @@ const uint8_t request_info= 0xAA; 	//0b11001100
 const uint8_t request_secs= 0xF0; 	//0b11110000
 
 //Answer string templates
-const char error_high_temp 		= 0b01100000;	//high temperature (>=60°C)		send temperature /2
-const char error_low_volt 		= 0b00100000;	//low voltage (<=2,5V)			send voltage x 10
+const uint8_t error_high_temp 	= 0b01100000;	//high temperature (>=60°C)		send temperature /2
+const uint8_t error_low_volt 	= 0b00100000;	//low voltage (<=2,5V)			send voltage x 10
 
-const char error_not_suit		= 0b01000000;	//not suitable
-const char error_res_high 		= 0b01001000;	//res too high (res>=50mOhm)
-const char error_cap_dif 		= 0b01010000;	//self discharge... charge_cap|discharge_cap+-10%
-const char error_timeout 		= 0b01011000;	//timeout (time>=10h)
+const uint8_t error_not_suit	= 0b01000000;	//not suitable
+const uint8_t error_res_high 	= 0b01001000;	//res too high (res>=50mOhm)
+const uint8_t error_cap_dif 	= 0b01010000;	//self discharge... charge_cap|discharge_cap+-10%
+const uint8_t error_timeout 	= 0b01011000;	//timeout (time>=10h)
 
-const char idle 				= 0b10100000;	//idle
-const char processing 			= 0b10000000;	//measurement in progress		current progress in percent
-const char done 				= 0b11000000;	//done with the measurement		resistance in mOhms
+const uint8_t idle 				= 0b10100000;	//idle
+const uint8_t processing 		= 0b10000000;	//measurement in progress		current progress in percent
+const uint8_t done 				= 0b11000000;	//done with the measurement		resistance in mOhms
 
 /*
 Progress:
