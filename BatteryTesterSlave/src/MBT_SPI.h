@@ -13,12 +13,24 @@
 #define MAX_RESISTANCE	50
 
 //Tolerance
-#define MAX_CAP_DIFF	10
+#define MAX_CAP_DIFF	10			//Its recommended not to change this value
 
 //Strings sent by the master -> Requests
-const uint8_t empty_string= 0x00;
-const uint8_t request_info= 0x2A; //0b00101010
-const uint8_t request_secs= 0xE4; //0b11100100
+const uint8_t request_info= 0xAA; 	//0b11001100
+const uint8_t request_secs= 0xF0; 	//0b11110000
+
+//Answer string templates
+const char error_high_temp 		= 0b01100000;	//high temperature (>=60°C)		send temperature /2
+const char error_low_volt 		= 0b00100000;	//low voltage (<=2,5V)			send voltage x 10
+
+const char error_not_suit		= 0b01000000;	//not suitable
+const char error_res_high 		= 0b01001000;	//res too high (res>=50mOhm)
+const char error_cap_dif 		= 0b01010000;	//self discharge... charge_cap|discharge_cap+-10%
+const char error_timeout 		= 0b01011000;	//timeout (time>=10h)
+
+const char idle 				= 0b10100000;	//idle
+const char processing 			= 0b10000000;	//measurement in progress		current progress in percent
+const char done 				= 0b11000000;	//done with the measurement		resistance in mOhms
 
 /*
 Progress:
@@ -30,44 +42,4 @@ Progress:
 	55% 5) discharge until 3V with 1A
 	80% 6) charge until 3.7V
 	100% - Done
-*/
-
-//Answer string templates
-const char error_high_temp 		= 0b00000000;
-const char error_low_volt 		= 0b00100000;
-
-const char error_not_suit		= 0b10000000;
-const char error_cap_low 		= 0b10000000;
-const char error_res_high 		= 0b10010000;
-const char error_cap_dif 		= 0b10100000;
-const char error_timeout 		= 0b10110000;
-
-const char idle 				= 0b01100000;
-const char processing 			= 0b10000000;
-const char done 				= 0b11000000;
-
-/*
-Bits:
-0:: - no test
- 00:: - high temperature	(>=60°C)
-	   send temperature /2
-	   
- 01:: - low voltage			(<=2,5V)
-	   send voltage x 10
-	   
- 10:: - not suitable		(cap<=800; res>=50mOhm; charge_cap|discharge_cap+-10%)
-	send reason
-   00 - cap too low
-   01 - res too high
-   10 - 10% difference
-   11 - timeout
-   
- 11:: - idle
- 
-1:: - got to do
- 10:: - measurement in progress
-	  current progress in percent
-	  
- 11:: - done with the measurement
-	  resistance in mOhms
 */
