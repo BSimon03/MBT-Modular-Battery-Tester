@@ -15,6 +15,7 @@
 //Tolerance
 #define MAX_CAP_DIFF	10			//Its recommended not to change this value
 #define TEMP_CONSTANT	3.6
+#define ADC_OFFSET		0.25
 
 //Strings sent by the master -> Requests
 const uint8_t request_info= 0xAA; 	//0b11001100
