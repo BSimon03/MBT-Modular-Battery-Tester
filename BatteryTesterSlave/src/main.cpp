@@ -11,7 +11,7 @@
 #include "init_ATtiny261A.h"
 #include "MBT_settings.h"
 
-#define ADC_SAMPLES 6		//
+#define ADC_SAMPLES 6 //
 
 //Data received
 uint8_t storedDATA = 0;
@@ -67,13 +67,13 @@ uint8_t resistance = 0;
 
 int main(void)
 {
-	init_attiny261a();	//Initiating the MCU, Registers configurated
+	init_attiny261a(); //Initiating the MCU, Registers configurated
 
 	sei(); //global interrupt enable
 
 	while (1)
 	{
-		if ADC_INTERRUPT //ADC Interrupt ADIF is high
+		if (ADC_INTERRUPT) //ADC Interrupt ADIF is high
 		{
 			if (adc_counter >= ADC_SAMPLES)
 			{
@@ -100,35 +100,36 @@ int main(void)
 				}
 				//Adding all measured values to variable, except the outer ones
 				adc_value = 0; //Resetting variable
-				for (adc_counter = 1; adc_counter < (ADC_SAMPLES - 1); adc_counter++) 
+				for (adc_counter = 1; adc_counter < (ADC_SAMPLES - 1); adc_counter++)
 					adc_value += adc_values[adc_counter];
 				adc_value /= (ADC_SAMPLES - 2);
 				adc_counter = 0;
 
-				if (ADCstat)		//Temperature
+				if (ADCstat) //Temperature
 				{
-					battery_temperature=(float)adc_value/TEMP_CONSTANT;
+					battery_temperature = (float)adc_value / TEMP_CONSTANT;
 					ADMUX &= ~(1 << MUX2); //Clearing all important bits of the ADMUX register
 					ADMUX |= (1 << MUX1);  //Attaching Channel 6 to the ADC... Battery
 					ADCstat = 0;
 				}
-				else if (!ADCstat)	//Battery
+				else if (!ADCstat) //Battery
 				{
-					battery_voltage=(float)adc_value/400;	//divided by 1024 aka 10-bit, multiplied by 2,56 aka internal reference voltage
-					ADMUX &= ~(1 << MUX1); //Clearing all important bits of the ADMUX register
-					ADMUX |= (1 << MUX2);  //Attaching Channel 5 to the ADC... Temperature
+					battery_voltage = (float)adc_value / 400; //divided by 1024 aka 10-bit, multiplied by 2,56 aka internal reference voltage
+					ADMUX &= ~(1 << MUX1);					  //Clearing all important bits of the ADMUX register
+					ADMUX |= (1 << MUX2);					  //Attaching Channel 5 to the ADC... Temperature
 					ADCstat = 1;
 				}
 			}
-			
+
 			adc_values[adc_counter] = 0;
 			adc_values[adc_counter] |= ADCL;
-			adc_values[adc_counter] |= ((ADCH & 0b00000011) << 8);
+			adc_values[adc_counter] |= ((ADCH & 0x03) << 8);
 			
 			adc_counter++;
 		}
 		//Communication
-		information_string &= 0x00;		//Reset string
+		information_string = 0; //Reset string
+
 		switch (status)
 		{
 		case 0: //Idle, waiting
@@ -191,9 +192,8 @@ int main(void)
 		}
 	}
 }
-
-
-ISR(PCINT_vect)					//Pin change interrupt set up for the chip-select pin
+/**/
+ISR(PCINT_vect) 		//Pin change interrupt set up for the chip-select pin
 {
 	if ((PORTB & (1 << CS)) == 0)
 	{
@@ -209,39 +209,38 @@ ISR(PCINT_vect)					//Pin change interrupt set up for the chip-select pin
 	}
 }
 
-ISR(USI_OVF_vect)				// USI interrupt routine. Always executed when 4-bit overflows (after 16 clock edges = 8 clock cycles)
+ISR(USI_OVF_vect) 		// USI interrupt routine. Always executed when 4-bit overflows (after 16 clock edges = 8 clock cycles/ 8 bits)
 {
-	storedDATA = USIDR; // Read in from USIDR register
-	switch (storedDATA)
+	storedDATA = USIDR; 		// Read in from USIDR register
+	switch (storedDATA)			// Switch-Case to respond according to the request from Master	
+
 	{
-
-		// Switch-Case to respond according to request from Master:
-
-	case 0:					 // If storedDATA is an empty string only the flag is being cleared
-		USISR = 1 << USIOIF; // Clear Overflow bit
+		
+	case 0:					 	// If storedDATA is an empty string only the flag is being cleared
+		USISR = 1 << USIOIF; 		// Clear Overflow bit
 		break;
 
-	case request_info: // If the master requested information, the information string immediately gets sent back.
+	case request_info: 			// If the master requested information, the information string immediately gets sent back.
 		USIDR = information_string;
 		USISR = 1 << USIOIF;
 		break;
 
-	case request_secs: // If the master requested the second string, values are getting sent back.
+	case request_secs: 			// If the master requested the second string, values are getting sent back.
 		USIDR = value_string;
 		USISR = 1 << USIOIF;
 		break;
 	}
 }
 
-ISR(TIMER1_COMPA_vect)			//Charging OFF on compare match
+ISR(TIMER1_COMPA_vect)	//Charging OFF on compare match
 {
 	PORTA |= (1 << CHARGE);
 }
-ISR(TIMER1_COMPB_vect)			//Discharging OFF on compare match
+ISR(TIMER1_COMPB_vect)	//Discharging OFF on compare match
 {
 	PORTA &= ~(1 << DISCHARGE);
 }
-ISR(TIMER1_OVF_vect) 			//Charge or Discharge ON
+ISR(TIMER1_OVF_vect)	//Charge or Discharge ON
 {
 	if (status == 1)
 		PORTA &= ~(1 << CHARGE);

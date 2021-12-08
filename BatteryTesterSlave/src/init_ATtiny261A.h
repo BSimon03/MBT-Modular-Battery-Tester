@@ -29,7 +29,7 @@
 #define STAT_RED	PINA1		//Red status LED
 #define STAT_GREEN	PINA2		//Green status LED
 
-#define ADC_INTERRUPT (ADCSRA & 0b00010000) 
+#define ADC_INTERRUPT ADCSRA & 0b00010000 
 
 
 
