@@ -67,18 +67,18 @@ uint8_t resistance = 0;
 
 int main(void)
 {
-	init_attiny261a();
+	init_attiny261a();	//Initiating the MCU, Registers configurated
 
 	sei(); //global interrupt enable
 
 	while (1)
 	{
-		if (ADCSRA & 0b00010000) //ADC Interrupt ADIF is high
+		if ADC_INTERRUPT //ADC Interrupt ADIF is high
 		{
 			if (adc_counter >= ADC_SAMPLES)
 			{
 				//shifting the greatest value to the right
-				for (adc_counter = 1; adc_counter <= (ADC_SAMPLES - 1); adc_counter++)
+				for (adc_counter = 0; adc_counter < ADC_SAMPLES; adc_counter++)
 				{
 					if (adc_values[adc_counter] > adc_values[adc_counter + 1])
 					{
@@ -89,7 +89,7 @@ int main(void)
 				}
 
 				//shifting the lowest value to the left
-				for (; adc_counter >= 1; adc_counter--)
+				for (adc_counter = ADC_SAMPLES; adc_counter >= 0; adc_counter--)
 				{
 					if (adc_values[adc_counter] < adc_values[adc_counter - 1])
 					{
@@ -100,7 +100,7 @@ int main(void)
 				}
 				//Adding all measured values to variable, except the outer ones
 				adc_value = 0; //Resetting variable
-				for (adc_counter = 1; adc_counter <= (ADC_SAMPLES - 2); adc_counter++) 
+				for (adc_counter = 1; adc_counter < (ADC_SAMPLES - 1); adc_counter++) 
 					adc_value += adc_values[adc_counter];
 				adc_value /= (ADC_SAMPLES - 2);
 				adc_counter = 0;
@@ -128,7 +128,7 @@ int main(void)
 			adc_counter++;
 		}
 		//Communication
-		information_string &= 0xFF;
+		information_string &= 0x00;		//Reset string
 		switch (status)
 		{
 		case 0: //Idle, waiting
@@ -192,9 +192,8 @@ int main(void)
 	}
 }
 
-//Pin change interrupt set up for the chip-select pin
 
-ISR(PCINT_vect)
+ISR(PCINT_vect)					//Pin change interrupt set up for the chip-select pin
 {
 	if ((PORTB & (1 << CS)) == 0)
 	{
@@ -210,9 +209,7 @@ ISR(PCINT_vect)
 	}
 }
 
-// USI interrupt routine. Always executed when 4-bit overflows (after 16 clock edges = 8 clock cycles):
-
-ISR(USI_OVF_vect)
+ISR(USI_OVF_vect)				// USI interrupt routine. Always executed when 4-bit overflows (after 16 clock edges = 8 clock cycles)
 {
 	storedDATA = USIDR; // Read in from USIDR register
 	switch (storedDATA)
@@ -236,15 +233,15 @@ ISR(USI_OVF_vect)
 	}
 }
 
-ISR(TIMER1_COMPA_vect) //Charging OFF on compare match
+ISR(TIMER1_COMPA_vect)			//Charging OFF on compare match
 {
 	PORTA |= (1 << CHARGE);
 }
-ISR(TIMER1_COMPB_vect) //Discharging OFF on compare match
+ISR(TIMER1_COMPB_vect)			//Discharging OFF on compare match
 {
 	PORTA &= ~(1 << DISCHARGE);
 }
-ISR(TIMER1_OVF_vect) //Charge or Discharge ON
+ISR(TIMER1_OVF_vect) 			//Charge or Discharge ON
 {
 	if (status == 1)
 		PORTA &= ~(1 << CHARGE);

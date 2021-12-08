@@ -29,6 +29,8 @@
 #define STAT_RED	PINA1		//Red status LED
 #define STAT_GREEN	PINA2		//Green status LED
 
+#define ADC_INTERRUPT (ADCSRA & 0b00010000) 
+
 
 
 //Clock Prescaler
@@ -149,6 +151,7 @@ void ADC_setup()
 
 void init_attiny261a()					//Combining all setup functions
 {
+	DDRA|=(1<<STAT_GREEN)|(1<<STAT_RED);
 	mcu_set_clock();
 	PCINT_setup();
 	PWM_setup();
