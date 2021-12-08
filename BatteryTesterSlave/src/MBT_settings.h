@@ -6,19 +6,19 @@
 /*************************/
 
 //Important Predefines
-#define MIN_PRE_CHARGE	2
-#define MAX_VOLTAGE		4.2
-#define END_OF_CHARGE	3.5
-#define MIN_CAPACITY	1600
-#define MAX_RESISTANCE	50
+#define MIN_PRE_CHARGE	2						//Minimum voltage the battery must be precharged on
+#define MAX_VOLTAGE		4.2						//Maximum rating for th specific battery type... depends
+#define END_OF_CHARGE	3.5						//Voltage to which the battery will be charged when the measurements are done
+#define MIN_CAPACITY	1600					//Minimum capacity the battery must have to be suitable
+#define MAX_RESISTANCE	50						//Maximum inner resistance
 
 //Tolerance
-#define MAX_CAP_DIFF	10			//Its recommended not to change this value
-#define TEMP_CONSTANT	3.6
+#define MAX_CAP_DIFF	10						//Its recommended not to change this value
+#define TEMP_CONSTANT	3.6						//Callibration value for the NTC
 
 //Strings sent by the master -> Requests
-const uint8_t request_info= 0xAA; 	//0b11001100
-const uint8_t request_secs= 0xF0; 	//0b11110000
+const uint8_t request_info= 0xAA; 				//0b11001100		//Master requests information
+const uint8_t request_secs= 0xF0; 				//0b11110000		//Master requests the second byte of information, after the finish is acknowledged
 
 //Answer string templates
 const uint8_t error_high_temp 	= 0b01100000;	//high temperature (>=60°C)		send temperature /2

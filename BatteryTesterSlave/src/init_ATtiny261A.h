@@ -11,28 +11,28 @@
 
 //Bit defines
 //SPI
-#define SDI			PINB0
-#define SDO			PINB1
-#define USCK		PINB2
+#define SDI			PINB0		//Serial Data Input Pin
+#define SDO			PINB1		//Serial Data Output Pin
+#define USCK		PINB2		//Clock Pin -> Input
 
-#define CS			PINB6		//PINA[0:7] PINB[0:7]
+#define CS			PINB6		//Chip Select/Slave Select Pin... to be pulled down by the master when data shifting is complete
 
 //Power
-#define CHARGE		PINA0
-#define DISCHARGE	PINA5
+#define CHARGE		PINA0		//PWM Output Pin for the charging circuit
+#define DISCHARGE	PINA5		//PWM Output Pin for the discharging circuit
 
 //ADC
-#define TEMP		PINA6		//ADC5 MUX5:0 000101
-#define BATT		PINA4		//ADC6 MUX3:0 000011
+#define TEMP		PINA6		//ADC5 MUX5:0 000101	//Connected to the NTC
+#define BATT		PINA4		//ADC6 MUX3:0 000011	//Connected directly to the battery
 
 //Status
-#define STAT_RED	PINA1
-#define STAT_GREEN	PINA2
+#define STAT_RED	PINA1		//Red status LED
+#define STAT_GREEN	PINA2		//Green status LED
+
+
 
 //Clock Prescaler
 #define CLK_PRESCALER_VALUE 1  //Must be 1, 2, 4, 8, 16, 32, 64, 128 or 256
-
-
 
 /* MCU CLOCK PRESCALER */
 
@@ -79,21 +79,22 @@ void mcu_set_clock()		//set clock to 10MHz? supply voltage?
 }
 */
 
-void mcu_set_clock()
+void mcu_set_clock()					//Function to easily switch between Clock prescalers using the previous define
 {
 	CLKPR = CLK_PRESCALER_VALUE;
 }
 
-void PCINT_setup()
+void PCINT_setup()						//Pin Change Interrupt, both edges
 {
-	PCMSK1 |= (1<<PCINT14);
-	GIMSK |= PCIE1;                     // General Interrupt Mask Register / PCIE bit activates external interrupts
+	PCMSK1 |= (1<<PCINT14);				//Interrupt Pin
+	GIMSK |= PCIE1;                     //General Interrupt Mask Register / PCIE bit activates external interrupts
 }
 
 void PWM_setup()	//Charge/Discharge
 {
 	//Timer 1: 10kHz Software-PWM
 	//2 Channels can be controlled by changing OCR1x and used via the OVF Interrupt
+
 	TCCR1A&=~(1<<COM1A1)|(1<<COM1A0)|(1<<COM1B1)|(1<<COM1B0);
 	TCCR1A|=(1<<PWM1A)|(PWM1B);
 	
@@ -146,7 +147,7 @@ void ADC_setup()
 	//When its completed the channel can safely be changed. The next conversion takes 25 clock cycles.
 }
 
-void init_attiny261a()
+void init_attiny261a()					//Combining all setup functions
 {
 	mcu_set_clock();
 	PCINT_setup();

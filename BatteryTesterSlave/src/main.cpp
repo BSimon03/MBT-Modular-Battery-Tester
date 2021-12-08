@@ -9,9 +9,9 @@
 /*************************/
 
 #include "init_ATtiny261A.h"
-#include "MBT_SPI.h"
+#include "MBT_settings.h"
 
-#define ADC_SAMPLES 6
+#define ADC_SAMPLES 6		//
 
 //Data received
 uint8_t storedDATA = 0;
