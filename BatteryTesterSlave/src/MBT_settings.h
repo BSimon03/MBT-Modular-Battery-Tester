@@ -15,6 +15,9 @@
 //Tolerance
 #define MAX_CAP_DIFF	10						//Its recommended not to change this value
 #define TEMP_CONSTANT	3.6						//Callibration value for the NTC
+#define MAX_CAP_DIFF	10						//Its recommended not to change this value
+#define TEMP_CONSTANT	3.6						//NTC Constant
+#define ADC_OFFSET		0.25					//ADC shottky offset
 
 //Strings sent by the master -> Requests
 const uint8_t request_info= 0xAA; 				//0b11001100		//Master requests information

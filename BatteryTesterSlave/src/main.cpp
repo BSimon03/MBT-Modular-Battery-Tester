@@ -59,7 +59,7 @@ uint16_t adc_value = 0;
 uint8_t battery_temperature = 0;
 float battery_voltage = 0;
 
-uint16_t sort = 0; //sort algorithm
+uint16_t sort; //sort algorithm
 
 //Outcome of Measurements
 uint8_t capacity = 0;
@@ -77,8 +77,19 @@ int main(void)
 		{
 			if (adc_counter >= ADC_SAMPLES)
 			{
-				//Sorting and averaging algorithm
-				for (adc_counter = 0; adc_counter <= (ADC_SAMPLES - 2); adc_counter++)
+				//shifting the greatest value to the right
+				for (adc_counter = 1; adc_counter <= (ADC_SAMPLES - 1); adc_counter++)
+				{
+					if (adc_values[adc_counter] > adc_values[adc_counter + 1])
+					{
+						sort = adc_values[adc_counter + 1];
+						adc_values[adc_counter + 1] = adc_values[adc_counter];
+						adc_values[adc_counter] = sort;
+					}
+				}
+
+				//shifting the lowest value to the left
+				for (; adc_counter >= 1; adc_counter--)
 				{
 					if (adc_values[adc_counter] < adc_values[adc_counter - 1])
 					{
@@ -87,17 +98,7 @@ int main(void)
 						adc_values[adc_counter] = sort;
 					}
 				}
-
-				for (adc_counter = 0; adc_counter <= (ADC_SAMPLES - 2); adc_counter++)
-				{
-					if (adc_values[adc_counter] < adc_values[adc_counter - 1])
-					{
-						sort = adc_values[adc_counter + 1];
-						adc_values[adc_counter + 1] = adc_values[adc_counter];
-						adc_values[adc_counter] = sort;
-					}
-				}
-/***************Adding all measured values to variable, except the outer ones.*********************************************/
+				//Adding all measured values to variable, except the outer ones
 				adc_value = 0; //Resetting variable
 				for (adc_counter = 1; adc_counter <= (ADC_SAMPLES - 2); adc_counter++) 
 					adc_value += adc_values[adc_counter];
