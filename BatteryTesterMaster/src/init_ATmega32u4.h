@@ -71,7 +71,7 @@ void SPI_setup()
 	//port settings for master
 	DDRB|=(1<<MOSI)|(1<<SS)|(1<<SCL);       //Setting direction of PB1
 	DDRB&=~(1<<MISO);
-	PORTB|=(1<<MISO);
+	PORTB|=(1<<MISO)|(1<<SS);
 	
 	
     SPCR = (1<<SPE)|(1<<MSTR)|(1<<SPR0);    //Enable SPI, Master, set clock rate fck/16 
