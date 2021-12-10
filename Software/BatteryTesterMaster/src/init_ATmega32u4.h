@@ -19,8 +19,7 @@
 #define SS			PINB0		//Chip Select/Slave Select Pin... to be pulled down when data shifting is complete
 
 //Status
-#define STAT_RED	PINA1		//Red status LED
-#define STAT_GREEN	PINA2		//Green status LED
+#define FLIP_ONBOARD_LED PIND7
 
 //Clock Prescaler
 #define CLK_PRESCALER_VALUE 1  //Must be 1, 2, 4, 8, 16, 32, 64, 128 or 256
@@ -79,6 +78,7 @@ void SPI_setup()
 
 void init_atmega32u4()					    //Combining all setup functions
 {
+    DDRD|=(1<<FLIP_ONBOARD_LED);
 	mcu_set_clock();
 	SPI_setup();
 }

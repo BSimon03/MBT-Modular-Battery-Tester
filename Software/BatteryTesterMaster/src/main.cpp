@@ -83,19 +83,19 @@ int main(void)
 				break;
 
 			case idle: //idle
-				//On-Board LED high
+				PORTD |= (1<<FLIP_ONBOARD_LED); //On-Board LED high
 				break;
 
 			case processing: //measurement in progress		current progress in percent
 
-				break;
+				break; 
 
 			case done: //done with the measurement		resistance in mOhms
 
 				break;
 
 			default:
-				//On-Board LED low
+				PORTD &= ~(1<<FLIP_ONBOARD_LED); //On-Board LED low
 				break;
 			}
 		}
