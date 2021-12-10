@@ -1,12 +1,15 @@
-/*
- * BatteryTesterMaster.cpp
- *
- * Created: 28/10/2021 12:39:57
- * Author : Simon
- */ 
+/*************************/
+/*  main.cpp             */
+/*  Project MBT          */
+/*                       */
+/*  ATmega32u4 Master    */
+/*  V1.0                 */
+/*                       */
+/*  Author: Simon Ball   */
+/*************************/
 
-#include <avr/io.h>
-#include <avr/interrupt.h>
+#include "init_ATmega32u4.h"
+#include "MBT_settings.h"
 
 //Bit defines
 //SPI
