@@ -192,42 +192,40 @@ int main(void)
 		}
 	}
 }
-/*
-ISR(PCINT_vect) 		//Pin change interrupt set up for the chip-select pin
+
+ISR(INT0_vect) 		//Pin change interrupt set up for the chip-select pin
 {
-	if ((PORTB & (1 << CS)) == 0)
-	{
+	if (!(PINB & 0x40))
+	{	
 		// If edge is falling, the command and index variables shall be initialized
 		// and the 4-bit overflow counter of the USI communication shall be activated:
-		USICR |= (1 << USIOIE);
-		USISR = 1 << USIOIF; // Clear Overflow bit
+		USICR |= (1<<USIOIE);
+		USISR |= (1<<USIOIF); // Clear Overflow bit
 	}
 	else
-	{
+	{	
 		// If edge is rising, turn the 4-bit overflow interrupt off:
-		USICR &= ~(1 << USIOIE);
+		USICR &= ~(1<<USIOIE);
 	}
-}*/
+}
 
 ISR(USI_OVF_vect) 		// USI interrupt routine. Always executed when 4-bit overflows (after 16 clock edges = 8 clock cycles/ 8 bits)
 {
 	storedDATA = USIDR; 		// Read in from USIDR register
 	switch (storedDATA)			// Switch-Case to respond according to the request from Master	
-
-	{
-		
+	{		
 	case 0:					 	// If storedDATA is an empty string only the flag is being cleared
-		USISR = 1 << USIOIF; 		// Clear Overflow bit
+		USISR |= (1<<USIOIF); 		// Clear Overflow bit
 		break;
 
 	case request_info: 			// If the master requested information, the information string immediately gets sent back.
-		USIDR = information_string;
-		USISR = 1 << USIOIF;
+		USIDR |= information_string;
+		USISR |= (1<<USIOIF);
 		break;
 
 	case request_secs: 			// If the master requested the second string, values are getting sent back.
-		USIDR = value_string;
-		USISR = 1 << USIOIF;
+		USIDR |= value_string;
+		USISR |= (1<<USIOIF);
 		break;
 	}
 }

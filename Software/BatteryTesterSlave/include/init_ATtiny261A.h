@@ -87,10 +87,13 @@ void mcu_set_clock()					//Function to easily switch between Clock prescalers us
 	CLKPR = CLK_PRESCALER_VALUE;
 }
 
-void PCINT_setup()						//Pin Change Interrupt, both edges
+void INT_setup()						//External Interrupt, any edge
 {
-	PCMSK1 |= (1<<PCINT14);				//Interrupt Pin
-	GIMSK |= PCIE1;                     //General Interrupt Mask Register / PCIE bit activates external interrupts
+	DDRB&=~(1<<CS);
+	PORTB|=(1<<CS);
+	GIMSK |= (1<<INT0);                     //General Interrupt Mask Register / interrupt enable
+	MCUCR|=(1<<ISC00);				//any edge
+	MCUCR&=~(1<<ISC01);
 }
 
 void PWM_setup()	//Charge/Discharge
@@ -121,8 +124,8 @@ void SPI_setup()
 {
 	//port settings for slave
 	DDRB|=(1<<SDO);     //Setting direction of PB1
-	DDRB&=~(1<<SDI)|(1<<CS)|(1<<USCK);
-	PORTB|=(1<<SDI)|(1<<CS);  // Pull-up
+	DDRB&=~(1<<SDI)|(1<<USCK);
+	PORTB|=(1<<SDI);  // Pull-up
 	
 	//Choosing SPI aka three wire mode p.133
 	USICR&=~(1<<USIWM1);
@@ -154,7 +157,7 @@ void init_attiny261a()					//Combining all setup functions
 {
 	DDRA|=(1<<STAT_GREEN)|(1<<STAT_RED);
 	mcu_set_clock();
-	PCINT_setup();
+	INT_setup();
 	PWM_setup();
 	ADC_setup();
 	SPI_setup();
